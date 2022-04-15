@@ -33,10 +33,10 @@ def create_graph():
         target_column = df["Target"]
         max_target_value = target_column.max()
         max_vertices = max_source_value if max_source_value > max_target_value else max_target_value
-        max_vertices +=1
+        max_vertices += 1
         adj = [[] for x in range(max_vertices)]
         g.number_vertices = int(max_vertices)
-        print("number vertices :"+str(g.number_vertices))
+        print("number vertices :" + str(g.number_vertices))
 
         # Get number of edges
         rows = list(csv_dict_reader)
@@ -51,21 +51,21 @@ def create_graph():
 
 
 def count_number_components(g: Graph):
-    marked = [False] * g.number_vertices 
+    marked = [False] * g.number_vertices
     cpt = 0
 
     for vertice in range(g.number_vertices):
         if not marked[vertice]:
             depth_first_search(g, vertice, marked)
-            cpt+=1
+            cpt += 1
     return cpt
 
 
-def depth_first_search(g: Graph, root:int, marked):
+def depth_first_search(g: Graph, root: int, marked):
     marked[root] = True
     stack = []
     stack.append(root)
-    
+
     while not len(stack) == 0:
         v = stack.pop()
         for w in g.adj[v]:
@@ -75,68 +75,66 @@ def depth_first_search(g: Graph, root:int, marked):
 
 
 def count_number_bridges(g: Graph):
-
     count_bridges = 0
     for vertice in range(g.number_vertices):
-        for edges in range (len(g.adj[vertice])):
+        for edges in range(len(g.adj[vertice])):
             copy_graph = deepcopy(g)
             num_comp_before = count_number_components(g)
             copy_graph.adj[vertice].pop(edges)
             num_comp_after = count_number_components(copy_graph)
             if num_comp_before != num_comp_after:
-                count_bridges +=1
-        print (vertice)    
+                count_bridges += 1
+        print(vertice)
 
 
-def bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, stack, g):
+def bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g):
     marked[v] = True
     disc[v] = time
     low[v] = time
-    time+=1
+    time += 1
 
     # Recur for all the vertices adjacent to this vertex
     for w in g.adj[v]:
-        parent[w] = v
-        st
+        if not marked[w]:
+            parent[w] = v
+            bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g)
+
+            low[v] = min(low[v], low[w])
+
+            if low[w] > disc[v]:
+                cpt_bridge += 1
+
+        elif w != parent[v]:
+            low[v] = min(low[v], disc[w])
+
+    return cpt_bridge
 
 
-    return cpt_bridge, time
-    
-    
+def count_number_bridge_dfs(g: Graph):
+    # Mark all the vertices as not visited and Initialize parent and visited,
+    # and ap(articulation point) arrays
+    marked = [False] * g.number_vertices
+    disc = [float("Inf")] * g.number_vertices
+    low = [float("Inf")] * g.number_vertices
+    parent = [-1] * g.number_vertices
+    time = 0
+    cpt_bridge = 0
 
+    # Call the recursive helper function to find bridges
+    # in DFS tree rooted with vertex 'i'
+    for v in range(g.number_vertices):
+        if not marked[v]:
+            cpt_bridge = bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g)
 
-def bridge(g: Graph):
-        # Mark all the vertices as not visited and Initialize parent and visited,
-        # and ap(articulation point) arrays
-        marked = [False] * (g.number_vertices)
-        disc = [float("Inf")] * (g.number_vertices)
-        low = [float("Inf")] * (g.number_vertices)
-        parent = [-1] * (g.number_vertices)
- 
-        # Call the recursive helper function to find bridges
-        # in DFS tree rooted with vertex 'i'
-        stack = []
-        # TODO : Check to remove hardcode "0"
-        stack.append(0)
-        time = 0
-        cpt_bridge = 0
-        
-        while not len(stack) == 0:
-            v = stack.pop()
-            for w in g.adj[v]:
-                if not marked[w]:
-                    cpt_bridge, time = bridge_dfs(w, marked, parent, low, disc, time, cpt_bridge, stack, g)
+    return cpt_bridge
 
-            
-        # for i in range(self.V):
-        #     if visited[i] == False:
-        #         self.bridgeUtil(i, marked, parent, low, disc)
 
 if __name__ == '__main__':
+    sys.setrecursionlimit(5000)
     g = create_graph()
     cpt = count_number_components(g)
     print(cpt)
-    num_bridge = count_number_bridges(g)
+    num_bridge = count_number_bridge_dfs(g)
     print(num_bridge)
     # list = [False] * 10
     # print(list)
