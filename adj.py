@@ -33,11 +33,7 @@ def create_graph():
         target_column = df["Target"]
         max_target_value = target_column.max()
         max_vertices = max_source_value if max_source_value > max_target_value else max_target_value
-<<<<<<< HEAD
         max_vertices +=1
-=======
-        max_vertices += 1
->>>>>>> ef25cae57449c2677853218165a633e50dd35ccc
         adj = [[] for x in range(max_vertices)]
         g.number_vertices = int(max_vertices)
         print("number vertices :"+str(g.number_vertices))
