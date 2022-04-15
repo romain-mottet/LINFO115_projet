@@ -5,6 +5,7 @@ from turtle import st
 import pandas as pd
 import sys
 
+# TODO : considérer le graphe comme étant non dirigé (mettre les liens dans la matrice d'adjacence des deux sommets) (vérifier si c bon)
 
 class Node:
     def __init__(self, source, target, weight, timestamp):
@@ -24,10 +25,10 @@ class Graph:
 
 def create_graph():
     g = Graph()
-    with open('Project dataset.csv', 'r') as read_obj:
+    with open('one_bridge_data.csv', 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
         # Get number of vertices to create adjency matrix
-        df = pd.read_csv('Project dataset.csv')
+        df = pd.read_csv('one_bridge_data.csv')
         source_column = df["Source"]
         max_source_value = source_column.max()
         target_column = df["Target"]
@@ -45,6 +46,7 @@ def create_graph():
             s = int(row['Source'])
             t = int(row['Target'])
             adj[s].append(t)
+            adj[t].append(s)
 
         g.adj = adj
     return g
@@ -88,24 +90,27 @@ def count_number_bridges(g: Graph):
 
 
 def bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, g):
-    marked[v] = True
-    disc[v] = time
-    low[v] = time
-    time += 1
+    stack = [v]
 
-    # Recur for all the vertices adjacent to this vertex
-    for w in g.adj[v]:
-        if not marked[w]:
-            parent[w] = v
-            bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, g)
+    while not len(stack) == 0:
+        v = stack.pop()
+        marked[v] = True
+        disc[v] = time
+        low[v] = time
+        time += 1
+        for w in g.adj[v]:
+            if not marked[w]:
 
-            low[v] = min(low[v], low[w])
+                stack.append(w)
+                marked[w] = True
+                parent[w] = v
 
-            if low[w] > disc[v]:
-                cpt_bridge += 1
+                low[v] = min(low[v], low[w])
 
-        elif w != parent[v]:
-            low[v] = min(low[v], disc[w])
+                if low[w] > disc[v]:
+                    cpt_bridge += 1
+            elif w != parent[v]:
+                low[v] = min(low[v], disc[w])
 
     return cpt_bridge
 
@@ -117,7 +122,7 @@ def count_number_bridge(g: Graph):
     disc = [float("Inf")] * g.number_vertices
     low = [float("Inf")] * g.number_vertices
     parent = [-1] * g.number_vertices
-    
+
     time = 0
     cpt_bridge = 0
 
@@ -131,10 +136,10 @@ def count_number_bridge(g: Graph):
 
 
 if __name__ == '__main__':
-    sys.setrecursionlimit(5000)
+    # sys.setrecursionlimit(2000)
     g = create_graph()
-    cpt = count_number_components(g)
-    print(cpt)
+    # cpt = count_number_components(g)
+    # print(cpt)
     num_bridge = count_number_bridge(g)
     print(num_bridge)
     # list = [False] * 10
