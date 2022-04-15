@@ -87,7 +87,7 @@ def count_number_bridges(g: Graph):
         print(vertice)
 
 
-def bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g):
+def bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, g):
     marked[v] = True
     disc[v] = time
     low[v] = time
@@ -97,7 +97,7 @@ def bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g):
     for w in g.adj[v]:
         if not marked[w]:
             parent[w] = v
-            bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g)
+            bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, g)
 
             low[v] = min(low[v], low[w])
 
@@ -110,13 +110,14 @@ def bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g):
     return cpt_bridge
 
 
-def count_number_bridge_dfs(g: Graph):
+def count_number_bridge(g: Graph):
     # Mark all the vertices as not visited and Initialize parent and visited,
     # and ap(articulation point) arrays
     marked = [False] * g.number_vertices
     disc = [float("Inf")] * g.number_vertices
     low = [float("Inf")] * g.number_vertices
     parent = [-1] * g.number_vertices
+    
     time = 0
     cpt_bridge = 0
 
@@ -124,7 +125,7 @@ def count_number_bridge_dfs(g: Graph):
     # in DFS tree rooted with vertex 'i'
     for v in range(g.number_vertices):
         if not marked[v]:
-            cpt_bridge = bridge_recursive(v, marked, parent, low, disc, time, cpt_bridge, g)
+            cpt_bridge = bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, g)
 
     return cpt_bridge
 
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     g = create_graph()
     cpt = count_number_components(g)
     print(cpt)
-    num_bridge = count_number_bridge_dfs(g)
+    num_bridge = count_number_bridge(g)
     print(num_bridge)
     # list = [False] * 10
     # print(list)
