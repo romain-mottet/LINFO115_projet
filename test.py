@@ -10,17 +10,17 @@ class Node:
        
        
 # iterate over each line as a ordered dictionary and print only few column by column name
-# list = []
-# with open('dataset.csv', 'r') as read_obj:
-#     csv_dict_reader = DictReader(read_obj)
-#     for row in csv_dict_reader:
-#         print(row['Source'], row['Target'])
+list = []
+with open('Project dataset.csv', 'r') as read_obj:
+    csv_dict_reader = DictReader(read_obj)
+    for row in csv_dict_reader:
+        print(row['Source'], row['Target'])
         
-#         n = Node(row['Source'), row['Target'], row['Weight'], row['Timestamp'] )
-#         list.append(n) 
+        n = Node(row['Source'), row['Target'], row['Weight'], row['Timestamp'] )
+        list.append(n) 
         
-# n1 = list.pop
+n1 = list.pop
 
-# n2 = Node(1, 2, 3, 4)
+n2 = Node(1, 2, 3, 4)
 
 print(n2.timestamp)
