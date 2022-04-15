@@ -1,6 +1,7 @@
 from copy import deepcopy
 from json.tool import main
 from csv import DictReader
+from turtle import st
 import pandas as pd
 import sys
 
@@ -32,9 +33,14 @@ def create_graph():
         target_column = df["Target"]
         max_target_value = target_column.max()
         max_vertices = max_source_value if max_source_value > max_target_value else max_target_value
+<<<<<<< HEAD
         max_vertices +=1
+=======
+        max_vertices += 1
+>>>>>>> ef25cae57449c2677853218165a633e50dd35ccc
         adj = [[] for x in range(max_vertices)]
         g.number_vertices = int(max_vertices)
+        print("number vertices :"+str(g.number_vertices))
 
         # Get number of edges
         rows = list(csv_dict_reader)
@@ -49,7 +55,7 @@ def create_graph():
 
 
 def count_number_components(g: Graph):
-    marked = [False] * g.number_vertices
+    marked = [False] * g.number_vertices 
     cpt = 0
 
     for vertice in range(g.number_vertices):
@@ -59,11 +65,17 @@ def count_number_components(g: Graph):
     return cpt
 
 
-def depth_first_search(g: Graph, v:int, marked):
-    marked[v] = True
-    for w in g.adj[v]:
-        if not marked[w]:
-            depth_first_search(g, w, marked)
+def depth_first_search(g: Graph, root:int, marked):
+    marked[root] = True
+    stack = []
+    stack.append(root)
+    
+    while not len(stack) == 0:
+        v = stack.pop()
+        for w in g.adj[v]:
+            if not marked[w]:
+                stack.append(w)
+                marked[w] = True
 
 
 def count_number_bridges(g: Graph):
@@ -82,7 +94,6 @@ def count_number_bridges(g: Graph):
     pass
 
 if __name__ == '__main__':
-    sys.setrecursionlimit(2000)
     g = create_graph()
     cpt = count_number_components(g)
     print(cpt)
