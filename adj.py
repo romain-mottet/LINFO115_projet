@@ -1,5 +1,3 @@
-
-
 from json.tool import main
 from csv import DictReader
 
@@ -14,8 +12,7 @@ def create_adj_matrix():
         print(totalrows)
         adj = [[] for x in range(totalrows)]
         
-        for row in csv_dict_reader:
-            print(row['Source'], row['Target'])
+        for row in rows:
             s = int(row['Source'])
             t = int(row['Target'])
             adj[s].append(t)
