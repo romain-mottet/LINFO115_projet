@@ -1,3 +1,4 @@
+from copy import deepcopy
 from json.tool import main
 from csv import DictReader
 import pandas as pd
@@ -31,6 +32,7 @@ def create_graph():
         target_column = df["Target"]
         max_target_value = target_column.max()
         max_vertices = max_source_value if max_source_value > max_target_value else max_target_value
+        max_vertices +=1
         adj = [[] for x in range(max_vertices)]
         g.number_vertices = int(max_vertices)
 
@@ -64,7 +66,19 @@ def depth_first_search(g: Graph, v:int, marked):
             depth_first_search(g, w, marked)
 
 
-def count_number_bridges(adj):
+def count_number_bridges(g: Graph):
+
+    count_bridges = 0
+    for vertice in range(g.number_vertices):
+        for edges in range (len(g.adj[vertice])):
+            copy_graph = deepcopy(g)
+            num_comp_before = count_number_components(g)
+            copy_graph.adj[vertice].pop(edges)
+            num_comp_after = count_number_components(copy_graph)
+            if num_comp_before != num_comp_after:
+                count_bridges +=1
+        print (vertice)    
+
     pass
 
 if __name__ == '__main__':
@@ -72,5 +86,7 @@ if __name__ == '__main__':
     g = create_graph()
     cpt = count_number_components(g)
     print(cpt)
+    num_bridge = count_number_bridges(g)
+    print(num_bridge)
     # list = [False] * 10
     # print(list)
