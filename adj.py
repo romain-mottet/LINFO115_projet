@@ -87,7 +87,50 @@ def count_number_bridges(g: Graph):
                 count_bridges +=1
         print (vertice)    
 
-    pass
+
+def bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, stack, g):
+    marked[v] = True
+    disc[v] = time
+    low[v] = time
+    time+=1
+
+    # Recur for all the vertices adjacent to this vertex
+    for w in g.adj[v]:
+        parent[w] = v
+        st
+
+
+    return cpt_bridge, time
+    
+    
+
+
+def bridge(g: Graph):
+        # Mark all the vertices as not visited and Initialize parent and visited,
+        # and ap(articulation point) arrays
+        marked = [False] * (g.number_vertices)
+        disc = [float("Inf")] * (g.number_vertices)
+        low = [float("Inf")] * (g.number_vertices)
+        parent = [-1] * (g.number_vertices)
+ 
+        # Call the recursive helper function to find bridges
+        # in DFS tree rooted with vertex 'i'
+        stack = []
+        # TODO : Check to remove hardcode "0"
+        stack.append(0)
+        time = 0
+        cpt_bridge = 0
+        
+        while not len(stack) == 0:
+            v = stack.pop()
+            for w in g.adj[v]:
+                if not marked[w]:
+                    cpt_bridge, time = bridge_dfs(w, marked, parent, low, disc, time, cpt_bridge, stack, g)
+
+            
+        # for i in range(self.V):
+        #     if visited[i] == False:
+        #         self.bridgeUtil(i, marked, parent, low, disc)
 
 if __name__ == '__main__':
     g = create_graph()
