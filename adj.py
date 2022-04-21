@@ -5,7 +5,7 @@ from turtle import st
 import pandas as pd
 import sys
 
-DATASET_FILE = 'datasets/components/one_component.csv'
+DATASET_FILE = 'datasets/components/four_component.csv'
 
 # TODO : considérer le graphe comme étant non dirigé (mettre les liens dans la matrice d'adjacence des deux sommets) (vérifier si c bon)
 
@@ -15,7 +15,7 @@ class Node:
         self.target = target
         self.weight = weight
         self.timestamp = timestamp
-
+        
 
 class Graph:
     def __init__(self, adj=[[]], number_vertices=0, number_edges=0, nodes=[]):
@@ -24,6 +24,12 @@ class Graph:
         self.number_edges = number_edges
         self.nodes = nodes
 
+    def print_adj(self):
+        print("Vertices | adj[]\n-----------")
+        for i, line in enumerate(self.adj):
+            print("{} | {}".format(i, str(line)))
+            
+        # print('\n'.join(' '.join(str(x) for x in row) for row in self.adj))
 
 def create_graph():
     g = Graph()
@@ -52,6 +58,8 @@ def create_graph():
 
         g.adj = adj
     return g
+
+
 
 
 def count_number_components(g: Graph):
@@ -138,8 +146,10 @@ def count_number_bridge(g: Graph):
 
 
 if __name__ == '__main__':
+    print("Dataset : '"+DATASET_FILE+"'")
     # sys.setrecursionlimit(2000)
     g = create_graph()
+    g.print_adj()
     cpt = count_number_components(g)
     print("number_components : "+str(cpt))
     # num_bridge = count_number_bridge(g)
