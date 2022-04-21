@@ -5,6 +5,8 @@ from turtle import st
 import pandas as pd
 import sys
 
+DATASET_FILE = 'datasets/components/one_component.csv'
+
 # TODO : considérer le graphe comme étant non dirigé (mettre les liens dans la matrice d'adjacence des deux sommets) (vérifier si c bon)
 
 class Node:
@@ -25,10 +27,10 @@ class Graph:
 
 def create_graph():
     g = Graph()
-    with open('one_bridge_data.csv', 'r') as read_obj:
+    with open(DATASET_FILE, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
         # Get number of vertices to create adjency matrix
-        df = pd.read_csv('one_bridge_data.csv')
+        df = pd.read_csv(DATASET_FILE)
         source_column = df["Source"]
         max_source_value = source_column.max()
         target_column = df["Target"]
@@ -138,9 +140,9 @@ def count_number_bridge(g: Graph):
 if __name__ == '__main__':
     # sys.setrecursionlimit(2000)
     g = create_graph()
-    # cpt = count_number_components(g)
-    # print(cpt)
-    num_bridge = count_number_bridge(g)
-    print(num_bridge)
+    cpt = count_number_components(g)
+    print("number_components : "+str(cpt))
+    # num_bridge = count_number_bridge(g)
+    # print(num_bridge)
     # list = [False] * 10
     # print(list)
