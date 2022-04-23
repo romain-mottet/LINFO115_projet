@@ -5,7 +5,7 @@ from turtle import st
 import pandas as pd
 import sys
 
-DATASET_FILE = 'datasets/components/four_component.csv'
+DATASET_FILE = 'datasets/bridges/3_bridges.csv'
 
 # TODO : considérer le graphe comme étant non dirigé (mettre les liens dans la matrice d'adjacence des deux sommets) (vérifier si c bon)
 
