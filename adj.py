@@ -1,22 +1,27 @@
+from code import interact
 from copy import deepcopy
 from json.tool import main
 from csv import DictReader
-from turtle import st
+from time import time
 import pandas as pd
 import sys
 
-DATASET_FILE = 'Project dataset.csv'
+#Global variables
+DATASET_FILE = 'datasets/local_bridge/4_lb_2.csv'
+cpt_bridge = 0
+timer = 0
 
-# TODO : considérer le graphe comme étant non dirigé (mettre les liens dans la matrice d'adjacence des deux sommets) (vérifier si c bon)
-
-class Node:
+""" Class used to represent a weighted and directed node in a graph
+"""
+class Edge:
     def __init__(self, source, target, weight, timestamp):
         self.source = source
         self.target = target
         self.weight = weight
         self.timestamp = timestamp
         
-
+""" Class used to represent a graph, with an adjacency matrix
+"""
 class Graph:
     def __init__(self, adj=[[]], number_vertices=0, number_edges=0, nodes=[]):
         self.adj = adj
@@ -31,6 +36,10 @@ class Graph:
             
         # print('\n'.join(' '.join(str(x) for x in row) for row in self.adj))
 
+
+
+""" Function which create a Graph object based on 'DATASET_FILE' csv file.
+"""
 def create_graph():
     g = Graph()
     with open(DATASET_FILE, 'r') as read_obj:
@@ -61,19 +70,21 @@ def create_graph():
 
 
 
-
+""" Function used to count the number of components in a graph
+"""
 def count_number_components(g: Graph):
     marked = [False] * g.number_vertices
     cpt = 0
 
     for vertice in range(g.number_vertices):
         if not marked[vertice]:
-            depth_first_search(g, vertice, marked)
+            count_components_dfs_stack(g, vertice, marked)
             cpt += 1
     return cpt
 
-
-def depth_first_search(g: Graph, root: int, marked):
+""" Stack based DFS function used to count number of components in a graph
+"""
+def count_components_dfs_stack(g: Graph, root: int, marked):
     marked[root] = True
     stack = []
     stack.append(root)
@@ -84,75 +95,84 @@ def depth_first_search(g: Graph, root: int, marked):
             if not marked[w]:
                 stack.append(w)
                 marked[w] = True
-
-
+                
+""" Function used to count number of bridge in a graph
+"""
 def count_number_bridges(g: Graph):
-    count_bridges = 0
-    for vertice in range(g.number_vertices):
-        for edges in range(len(g.adj[vertice])):
-            copy_graph = deepcopy(g)
-            num_comp_before = count_number_components(g)
-            copy_graph.adj[vertice].pop(edges)
-            num_comp_after = count_number_components(copy_graph)
-            if num_comp_before != num_comp_after:
-                count_bridges += 1
-        print(vertice)
-
-
-def bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, g):
-    stack = [v]
-
-    while not len(stack) == 0:
-        v = stack.pop()
-        marked[v] = True
-        disc[v] = time
-        low[v] = time
-        time += 1
-        for w in g.adj[v]:
-            if not marked[w]:
-
-                stack.append(w)
-                marked[w] = True
-                parent[w] = v
-
-                low[v] = min(low[v], low[w])
-
-                if low[w] > disc[v]:
-                    cpt_bridge += 1
-            elif w != parent[v]:
-                low[v] = min(low[v], disc[w])
-
-    return cpt_bridge
-
-
-def count_number_bridge(g: Graph):
-    # Mark all the vertices as not visited and Initialize parent and visited,
-    # and ap(articulation point) arrays
-    marked = [False] * g.number_vertices
+    visited = [False] * g.number_vertices
     disc = [float("Inf")] * g.number_vertices
     low = [float("Inf")] * g.number_vertices
     parent = [-1] * g.number_vertices
-
-    time = 0
-    cpt_bridge = 0
-
-    # Call the recursive helper function to find bridges
-    # in DFS tree rooted with vertex 'i'
-    for v in range(g.number_vertices):
-        if not marked[v]:
-            cpt_bridge = bridge_dfs(v, marked, parent, low, disc, time, cpt_bridge, g)
-
+    
+    for vertice in range(g.number_vertices):
+        if not visited[vertice]:
+            count_number_bridges_dfs_recursive(g, vertice, visited, parent, low, disc)
+    global cpt_bridge
     return cpt_bridge
+
+
+""" Recursive function to count the number of bridge in a graph 
+"""
+def count_number_bridges_dfs_recursive(g, root, visited, parent, low, disc):
+    # Mark current node as visited
+    visited[root] = True
+    # Use globals variables timer and cpt_bridge
+    global timer, cpt_bridge
+    # Initialize discovery time and low value, and increment timer
+    disc[root] = timer
+    low[root] = timer
+    timer+=1
+        
+    # Loop through all neighbours of root
+    for v in g.adj[root]:
+        # If v is not yet visited, recur on it like if it's a child of 'root'
+        if not visited[v]:
+            parent[v] = root
+            count_number_bridges_dfs_recursive(g, v, visited, parent, low, disc)
+            
+            """ Check if the subtree rooted with v has a connection to
+             one of the ancestors of u"""
+            low[root] = min(low[root], low[v])
+
+
+            """ If the lowest vertex reachable from subtree
+            under v is below u in DFS tree, then u-v is
+            a bridge"""
+            if low[v] > disc[root]:
+                cpt_bridge+=1
+        
+        # Update low value of u for parent function calls.
+        elif v != parent[root]: 
+            low[root] = min(low[root], disc[v])
+            
+
+def intersection(a, b):
+    return list(set(a) & set(b))
+
+"""
+idée:
+in a graph is a local bridge if its endpoints A and B have no friends in common
+"""
+def count_number_local_bridges(g:Graph):
+    cpt = 0
+    for v in range(g.number_vertices):
+        for w in g.adj[v]:
+            if len(intersection(g.adj[v], g.adj[w])) == 0:
+                cpt+=1
+    return cpt/2
 
 
 if __name__ == '__main__':
     print("Dataset : '"+DATASET_FILE+"'")
-    # sys.setrecursionlimit(2000)
+    sys.setrecursionlimit(2000)
     g = create_graph()
-    g.print_adj()
-    cpt = count_number_components(g)
-    print("number_components : "+str(cpt))
-    # num_bridge = count_number_bridge(g)
-    # print(num_bridge)
-    # list = [False] * 10
-    # print(list)
+    # g.print_adj()
+    cpt_components = count_number_components(g)
+    print("number_components : "+str(cpt_components))
+    
+    count_number_bridges(g)
+    print("number_bridges : "+str(cpt_bridge))
+    
+    cpt_local_bridge = count_number_local_bridges(g)
+    print("local bridges : {}".format(cpt_local_bridge))
+
