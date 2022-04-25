@@ -7,7 +7,7 @@ import pandas as pd
 import sys
 
 #Global variables
-DATASET_FILE = 'datasets/local_bridge/4_lb_2.csv'
+DATASET_FILE = 'datasets/local_bridge/0_lb.csv'
 cpt_bridge = 0
 timer = 0
 
@@ -153,30 +153,35 @@ def intersection(a, b):
 def is_a_bridge (g: Graph, node_1: int, node_2: int):
     copy_graph = deepcopy (g)
     del copy_graph.adj[node_1][node_2]
-    if (count_components_dfs_stack(g) != count_components_dfs_stack(copy_graph)):
+    if (count_number_components(g) != count_number_components(copy_graph)):
         return True
     return False
 
+def is_common (list1, list2):
+    for i in range (len(list1)):
+        for j in range (len(list2)):
+            if list1[i] == list2[j]:
+                return True
+    return False
 """
 idée:
 in a graph is a local bridge if its endpoints A and B have no friends in common
 """
 def count_number_local_bridges(g:Graph):
     cpt = 0
-    for v in range(g.number_vertices):
-        for verticles_node1 in range (g.adj[v]):
-            falg = True
-            if is_a_bridge(g, v, verticles_node1):
-                break
+    print(g.adj)
+    for num_sommet in range(g.number_vertices):
+        print ("------------------------------")
+        for num_link_sommet in range (len(g.adj[num_sommet])):
+            print("Je suis dans le sommet {} et l'arrète index {} : ".format(num_sommet,num_link_sommet))
+            flag = True
+            if is_a_bridge(g, num_sommet, num_link_sommet):
+                pass
+            elif is_common(g.adj[num_sommet], g.adj [num_link_sommet]):
+                    pass
             else :
-                for verticles_node2 in range (g.adj[[v][verticles_node1]]):
-                    if verticles_node1 == verticles_node2:
-                        flag = False
-                        break 
-                    
-                if flag:
-                    cpt +=1
-    return cpt/2
+                cpt += 1
+    return cpt
 
 
 if __name__ == '__main__':
