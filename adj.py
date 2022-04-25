@@ -149,6 +149,14 @@ def count_number_bridges_dfs_recursive(g, root, visited, parent, low, disc):
 def intersection(a, b):
     return list(set(a) & set(b))
 
+
+def is_a_bridge (g: Graph, node_1: int, node_2: int):
+    copy_graph = deepcopy (g)
+    del copy_graph.adj[node_1][node_2]
+    if (count_components_dfs_stack(g) != count_components_dfs_stack(copy_graph)):
+        return True
+    return False
+
 """
 idée:
 in a graph is a local bridge if its endpoints A and B have no friends in common
@@ -156,9 +164,18 @@ in a graph is a local bridge if its endpoints A and B have no friends in common
 def count_number_local_bridges(g:Graph):
     cpt = 0
     for v in range(g.number_vertices):
-        for w in g.adj[v]:
-            if len(intersection(g.adj[v], g.adj[w])) == 0:
-                cpt+=1
+        for verticles_node1 in range (g.adj[v]):
+            falg = True
+            if is_a_bridge(g, v, verticles_node1):
+                break
+            else :
+                for verticles_node2 in range (g.adj[[v][verticles_node1]]):
+                    if verticles_node1 == verticles_node2:
+                        flag = False
+                        break 
+                    
+                if flag:
+                    cpt +=1
     return cpt/2
 
 
