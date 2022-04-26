@@ -3,13 +3,16 @@ from copy import deepcopy
 from json.tool import main
 from csv import DictReader
 from time import time
+from numpy import source
 import pandas as pd
 import sys
+from statistics import median
 
 #Global variables
-DATASET_FILE = 'datasets/local_bridge/0_lb.csv'
+DATASET_FILE = 'test_edge_weighted.csv'
 cpt_bridge = 0
 timer = 0
+median_timestamp = 0
 
 """ Class used to represent a weighted and directed node in a graph
 """
@@ -20,19 +23,28 @@ class Edge:
         self.weight = weight
         self.timestamp = timestamp
         
+    def __str__(self) -> str:
+        return "(s: {}, t:{}, w:{}, ts: {})".format(self.source, self.target, self.weight, self.timestamp)
+        
 """ Class used to represent a graph, with an adjacency matrix
 """
 class Graph:
-    def __init__(self, adj=[[]], number_vertices=0, number_edges=0, nodes=[]):
+    def __init__(self, adj=[[]], number_vertices=0, number_edges=0, edges_adj=[[]]):
         self.adj = adj
         self.number_vertices = number_vertices
         self.number_edges = number_edges
-        self.nodes = nodes
+        self.edges_adj = edges_adj
 
     def print_adj(self):
         print("Vertices | adj[]\n-----------")
         for i, line in enumerate(self.adj):
             print("{} | {}".format(i, str(line)))
+            
+    def print_edges_adj(self):
+        print("Vertices | edges_adj[]\n-----------")
+        for i, line in enumerate(self.edges_adj):
+            line_str = ','.join(str(e) for e in line)
+            print("{} | {}".format(i, str(line_str)))
             
         # print('\n'.join(' '.join(str(x) for x in row) for row in self.adj))
 
@@ -52,20 +64,48 @@ def create_graph():
         max_target_value = target_column.max()
         max_vertices = max_source_value if max_source_value > max_target_value else max_target_value
         max_vertices += 1
+        # Adjacency list for neighbour
         adj = [[] for x in range(max_vertices)]
+        # Adjacency edges list for neighbour (with weight and timestamp)
+        edges_adj = [[] for x in range(max_vertices)]
         g.number_vertices = int(max_vertices)
         print("number vertices :" + str(g.number_vertices))
+        
+        timestamp_list = []
 
         # Get number of edges
         rows = list(csv_dict_reader)
         g.number_edges = len(rows)
+        #For each row, complete adacency lists of graph (adj[] and edges_adj[])
         for row in rows:
             s = int(row['Source'])
             t = int(row['Target'])
             adj[s].append(t)
             adj[t].append(s)
+            timestamp_list.append(float(row['Timestamp']))
+            w = int(row['Weight'])
+            ts = row['Timestamp']
+            edge = Edge(s, t, w, ts)
+            
+            """Take only last transaction between two nodes ("if you find multiple transactions between the same two nodes,
+            consider only the oldest one according to the timestamp")"""
+            if any((e.source == s and e.target == t) or (e.source == t and e.target == s) for e in edges_adj[s]):
+                temp = filter(lambda e: not((e.source == s and e.target == t) or (e.source == t and e.target == s)), edges_adj[s])
+                edges_adj[s] = list(temp)
+                
+            if any((e.source == s and e.target == t) or (e.source == t and e.target == s) for e in edges_adj[t]):
+                temp = filter(lambda e: not((e.source == s and e.target == t) or (e.source == t and e.target == s)), edges_adj[t])
+                edges_adj[t] = list(temp)
 
+            edges_adj[s].append(edge)
+            edges_adj[t].append(edge)
+
+        #Compute median_timestamp
+        global median_timestamp
+        median_timestamp = median(timestamp_list)
+        
         g.adj = adj
+        g.edges_adj = edges_adj
     return g
 
 
@@ -173,7 +213,7 @@ def count_number_local_bridges(g:Graph):
     for num_sommet in range(g.number_vertices):
         print ("------------------------------")
         for num_link_sommet in range (len(g.adj[num_sommet])):
-            print("Je suis dans le sommet {} et l'arrète index {} : ".format(num_sommet,num_link_sommet))
+            # print("Je suis dans le sommet {} et l'arrète index {} : ".format(num_sommet,num_link_sommet))
             flag = True
             if is_a_bridge(g, num_sommet, num_link_sommet):
                 pass
@@ -184,17 +224,30 @@ def count_number_local_bridges(g:Graph):
     return cpt
 
 
+def count_nb_triangle(g: Graph):
+    cpt = 0
+    for v in range(g.number_vertices):
+        for w in g.edges_adj[v]:
+            pass 
+
+
 if __name__ == '__main__':
     print("Dataset : '"+DATASET_FILE+"'")
     sys.setrecursionlimit(2000)
     g = create_graph()
-    # g.print_adj()
+    g.print_adj()
+    g.print_edges_adj()
     cpt_components = count_number_components(g)
     print("number_components : "+str(cpt_components))
     
     count_number_bridges(g)
     print("number_bridges : "+str(cpt_bridge))
     
-    cpt_local_bridge = count_number_local_bridges(g)
-    print("local bridges : {}".format(cpt_local_bridge))
+    # for i in range(3):
+    #     print("=====================")
+    #     print("adj : "+str(g.adj[i]))
+    #     print("edge_adj : "+str(g.edges_adj[i][1]))
+    
+    # cpt_local_bridge = count_number_local_bridges(g)
+    # print("local bridges : {}".format(cpt_local_bridge))
 
