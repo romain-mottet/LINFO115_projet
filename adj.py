@@ -9,7 +9,7 @@ import sys
 from statistics import median
 
 #Global variables
-DATASET_FILE = 'test_edge_weighted.csv'
+DATASET_FILE = 'Project dataset.csv'
 cpt_bridge = 0
 timer = 0
 median_timestamp = 0
@@ -17,14 +17,13 @@ median_timestamp = 0
 """ Class used to represent a weighted and directed node in a graph
 """
 class Edge:
-    def __init__(self, source, target, weight, timestamp):
-        self.source = source
+    def __init__(self, target, weight, timestamp):
         self.target = target
         self.weight = weight
         self.timestamp = timestamp
         
     def __str__(self) -> str:
-        return "(s: {}, t:{}, w:{}, ts: {})".format(self.source, self.target, self.weight, self.timestamp)
+        return "(t:{}, w:{}, ts: {})".format(self.target, self.weight, self.timestamp)
         
 """ Class used to represent a graph, with an adjacency matrix
 """
@@ -52,7 +51,7 @@ class Graph:
 
 """ Function which create a Graph object based on 'DATASET_FILE' csv file.
 """
-def create_graph():
+def create_graph(timestamp_limit=float('inf')):
     g = Graph()
     with open(DATASET_FILE, 'r') as read_obj:
         csv_dict_reader = DictReader(read_obj)
@@ -78,27 +77,28 @@ def create_graph():
         g.number_edges = len(rows)
         #For each row, complete adacency lists of graph (adj[] and edges_adj[])
         for row in rows:
-            s = int(row['Source'])
-            t = int(row['Target'])
-            adj[s].append(t)
-            adj[t].append(s)
-            timestamp_list.append(float(row['Timestamp']))
-            w = int(row['Weight'])
-            ts = row['Timestamp']
-            edge = Edge(s, t, w, ts)
-            
-            """Take only last transaction between two nodes ("if you find multiple transactions between the same two nodes,
-            consider only the oldest one according to the timestamp")"""
-            if any((e.source == s and e.target == t) or (e.source == t and e.target == s) for e in edges_adj[s]):
-                temp = filter(lambda e: not((e.source == s and e.target == t) or (e.source == t and e.target == s)), edges_adj[s])
-                edges_adj[s] = list(temp)
+            ts = float(row['Timestamp'])
+            #Take only transactions for correct period
+            if ts > timestamp_limit:
+                s = int(row['Source'])
+                t = int(row['Target'])
+                adj[s].append(t)
+                adj[t].append(s)
+                timestamp_list.append(ts)
+                w = int(row['Weight'])
+                edge = Edge(t, w, ts)
+                edge_s = Edge(s, w, ts)
                 
-            if any((e.source == s and e.target == t) or (e.source == t and e.target == s) for e in edges_adj[t]):
-                temp = filter(lambda e: not((e.source == s and e.target == t) or (e.source == t and e.target == s)), edges_adj[t])
+                """Take only last transaction between two nodes ("if you find multiple transactions between the same two nodes,
+                consider only the oldest one according to the timestamp")"""
+                temp = filter(lambda e: e.target != s and e.target != t, edges_adj[s])
+                edges_adj[s] = list(temp)
+
+                temp = filter(lambda e: e.target != s and e.target != t, edges_adj[t])
                 edges_adj[t] = list(temp)
 
-            edges_adj[s].append(edge)
-            edges_adj[t].append(edge)
+                edges_adj[s].append(edge)
+                edges_adj[t].append(edge_s)
 
         #Compute median_timestamp
         global median_timestamp
@@ -228,20 +228,27 @@ def count_nb_triangle(g: Graph):
     cpt = 0
     for v in range(g.number_vertices):
         for w in g.edges_adj[v]:
-            pass 
+            for x in g.edges_adj[w.target]:
+                if any(nei.target == v for nei in g.edges_adj[x.target]):
+                    cpt+=1
+    return cpt/6
 
 
 if __name__ == '__main__':
     print("Dataset : '"+DATASET_FILE+"'")
     sys.setrecursionlimit(2000)
-    g = create_graph()
-    g.print_adj()
-    g.print_edges_adj()
+    g = create_graph(timestamp_limit=1358386882.63905)
+    print("timestamp median : {}".format(median_timestamp))
+    # g.print_adj()
+    # g.print_edges_adj()
     cpt_components = count_number_components(g)
     print("number_components : "+str(cpt_components))
     
     count_number_bridges(g)
     print("number_bridges : "+str(cpt_bridge))
+    
+    t = count_nb_triangle(g)
+    print("number triangles : {}".format(t))
     
     # for i in range(3):
     #     print("=====================")
