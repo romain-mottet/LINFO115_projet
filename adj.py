@@ -3,10 +3,10 @@ from copy import deepcopy
 from json.tool import main
 from csv import DictReader
 from time import time
-from numpy import source
+from numpy import source, quantile
 import pandas as pd
 import sys
-from statistics import median
+import statistics
 
 #Global variables
 DATASET_FILE = 'Project dataset.csv'
@@ -79,7 +79,7 @@ def create_graph(timestamp_limit=float('inf')):
         for row in rows:
             ts = float(row['Timestamp'])
             #Take only transactions for correct period
-            if ts > timestamp_limit:
+            if ts < timestamp_limit:
                 s = int(row['Source'])
                 t = int(row['Target'])
                 adj[s].append(t)
@@ -102,7 +102,12 @@ def create_graph(timestamp_limit=float('inf')):
 
         #Compute median_timestamp
         global median_timestamp
-        median_timestamp = median(timestamp_list)
+        median_timestamp = statistics.median(timestamp_list)
+        quantiles_list = []
+        quantiles_list.append(quantile(timestamp_list, .25))
+        quantiles_list.append(quantile(timestamp_list, .5))
+        quantiles_list.append(quantile(timestamp_list, .75))
+        print("Quantiles : {}".format(quantiles_list))
         
         g.adj = adj
         g.edges_adj = edges_adj
@@ -237,7 +242,8 @@ def count_nb_triangle(g: Graph):
 if __name__ == '__main__':
     print("Dataset : '"+DATASET_FILE+"'")
     sys.setrecursionlimit(2000)
-    g = create_graph(timestamp_limit=1358386882.63905)
+    #timestamp_limit=1358386882.63905
+    g = create_graph(timestamp_limit=1376598564.33713)
     print("timestamp median : {}".format(median_timestamp))
     # g.print_adj()
     # g.print_edges_adj()
