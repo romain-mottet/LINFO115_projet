@@ -79,17 +79,17 @@ def create_graph(timestamp_limit=float('inf')):
         g.number_edges = len(rows)
         #For each row, complete adacency lists of graph (adj[] and edges_adj[])
         for row in rows:
+            s = int(row['Source'])
+            t = int(row['Target'])
+            if t not in adj2[s] :
+                adj2[s].append(t)
+            if s not in adj2[t] :
+                adj2[t].append(s)
             ts = float(row['Timestamp'])
             #Take only transactions for correct period
             if ts < timestamp_limit:
-                s = int(row['Source'])
-                t = int(row['Target'])
                 adj[s].append(t)
                 adj[t].append(s)
-                if t not in adj2[s] :
-                    adj2[s].append(t)
-                if s not in adj2[t] :
-                    adj2[t].append(s)
                 timestamp_list.append(ts)
                 w = int(row['Weight'])
                 edge = Edge(t, w, ts)
@@ -215,7 +215,6 @@ in a graph is a local bridge if its endpoints A and B have no friends in common
 def count_number_local_bridges(g:Graph):
     cpt = 0
     for num_sommet in range(g.number_vertices):
-        print ("------------------------------")
         for num_link_sommet in range (len(g.adj_one_link[num_sommet])):
             if is_common(g.adj_one_link[num_sommet], g.adj_one_link[g.adj_one_link[num_sommet][num_link_sommet]]):
                     pass
@@ -247,6 +246,9 @@ if __name__ == '__main__':
     
     count_number_bridges(g)
     print("number_bridges : "+str(cpt_bridge))
+
+    number_lb = count_number_local_bridges(g)
+    print("Number of local bridges: {}".format(number_lb))
     
     t = count_nb_triangle(g)
     print("number triangles : {}".format(t))
