@@ -28,8 +28,9 @@ class Edge:
 """ Class used to represent a graph, with an adjacency matrix
 """
 class Graph:
-    def __init__(self, adj=[[]], number_vertices=0, number_edges=0, edges_adj=[[]]):
+    def __init__(self, adj=[[]], adj_one_link=[[]], number_vertices=0, number_edges=0, edges_adj=[[]]):
         self.adj = adj
+        self.adj_one_link = adj_one_link
         self.number_vertices = number_vertices
         self.number_edges = number_edges
         self.edges_adj = edges_adj
@@ -65,6 +66,7 @@ def create_graph(timestamp_limit=float('inf')):
         max_vertices += 1
         # Adjacency list for neighbour
         adj = [[] for x in range(max_vertices)]
+        adj2 = [[] for x in range(max_vertices)]
         # Adjacency edges list for neighbour (with weight and timestamp)
         edges_adj = [[] for x in range(max_vertices)]
         g.number_vertices = int(max_vertices)
@@ -84,6 +86,10 @@ def create_graph(timestamp_limit=float('inf')):
                 t = int(row['Target'])
                 adj[s].append(t)
                 adj[t].append(s)
+                if t not in adj2[s] :
+                    adj2[s].append(t)
+                if s not in adj2[t] :
+                    adj2[t].append(s)
                 timestamp_list.append(ts)
                 w = int(row['Weight'])
                 edge = Edge(t, w, ts)
@@ -110,6 +116,7 @@ def create_graph(timestamp_limit=float('inf')):
         print("Quantiles : {}".format(quantiles_list))
         
         g.adj = adj
+        g.adj_one_link = adj2
         g.edges_adj = edges_adj
     return g
 
@@ -194,14 +201,6 @@ def count_number_bridges_dfs_recursive(g, root, visited, parent, low, disc):
 def intersection(a, b):
     return list(set(a) & set(b))
 
-
-def is_a_bridge (g: Graph, node_1: int, node_2: int):
-    copy_graph = deepcopy (g)
-    del copy_graph.adj[node_1][node_2]
-    if (count_number_components(g) != count_number_components(copy_graph)):
-        return True
-    return False
-
 def is_common (list1, list2):
     for i in range (len(list1)):
         for j in range (len(list2)):
@@ -212,21 +211,17 @@ def is_common (list1, list2):
 idée:
 in a graph is a local bridge if its endpoints A and B have no friends in common
 """
+
 def count_number_local_bridges(g:Graph):
     cpt = 0
-    print(g.adj)
     for num_sommet in range(g.number_vertices):
         print ("------------------------------")
         for num_link_sommet in range (len(g.adj[num_sommet])):
-            # print("Je suis dans le sommet {} et l'arrète index {} : ".format(num_sommet,num_link_sommet))
-            flag = True
-            if is_a_bridge(g, num_sommet, num_link_sommet):
-                pass
-            elif is_common(g.adj[num_sommet], g.adj [num_link_sommet]):
+            if is_common(g.adj[num_sommet], g.adj[g.adj[num_sommet][num_link_sommet]]):
                     pass
             else :
                 cpt += 1
-    return cpt
+    return cpt/2
 
 
 def count_nb_triangle(g: Graph):
