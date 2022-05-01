@@ -72,10 +72,10 @@ def create_graph(df, timestamp_limit=float('inf')):
     timestamp_list = []
 
     # Get number of edges
-    rows = list(csv_dict_reader)
-    g.number_edges = len(rows)
+    # rows = list(csv_dict_reader)
+    g.number_edges = df.shape[0]
     #For each row, complete adacency lists of graph (adj[] and edges_adj[])
-    for row in rows:
+    for index, row in df.iterrows():
         s = int(row['Source'])
         t = int(row['Target'])
         if t not in adj2[s] :
@@ -237,8 +237,22 @@ Output: (number_of_different_components, number_of_bridges, number_of_local_brid
 def basic_properties(dataframe):
     g = create_graph(dataframe)
     cpt_components = count_number_components(g)
-    return (0,0,0) #replace with your own code
+    cpt_bridge_var = count_number_bridges(g)
+    number_lb = count_number_local_bridges(g)
+    return (cpt_components, cpt_bridge_var, number_lb) #replace with your own code
 
+
+"""
+Input: Pandas dataframe as described above representing a graph
+Output: Returns the total amount of triadic closures that arrise between the median timestamp of the dataframe until the last timestamp.
+Reminder: The triadic closures do not take into account the sign of the edges.
+"""
+def total_triadic_closures(dataframe):
+    g = create_graph(dataframe)
+    nb_triangles = count_nb_triangle(g)
+    g_median = create_graph(df=dataframe, timestamp_limit=1358386882.63905)
+    nb_triangles_median = count_nb_triangle(g_median)
+    return nb_triangles-nb_triangles_median
 
 if __name__ == '__main__':
     print("Dataset : '"+DATASET_FILE+"'")
@@ -249,15 +263,17 @@ if __name__ == '__main__':
         csv_dict_reader = DictReader(read_obj)
         # Get number of vertices to create adjency matrix
         df = pd.read_csv(DATASET_FILE)
-        g = create_graph(df)
-        print("timestamp median : {}".format(median_timestamp))
-        # g.print_adj()
-        # g.print_edges_adj()
-        cpt_components = count_number_components(g)
-        print("number_components : "+str(cpt_components))
+        print("total triadic : {}".format(total_triadic_closures(df)))
+        # print(basic_properties(df))
+        # g = create_graph(df)
+        # print("timestamp median : {}".format(median_timestamp))
+        # # g.print_adj()
+        # # g.print_edges_adj()
+        # cpt_components = count_number_components(g)
+        # print("number_components : "+str(cpt_components))
         
-        cpt_bridge_var = count_number_bridges(g)
-        print("number_bridges : "+str(cpt_bridge_var))
+        # cpt_bridge_var = count_number_bridges(g)
+        # print("number_bridges : "+str(cpt_bridge_var))
 
         # number_lb = count_number_local_bridges(g)
         # print("Number of local bridges: {}".format(number_lb))
@@ -268,9 +284,9 @@ if __name__ == '__main__':
         #timestamp_limit=1358386882.63905
         # g = create_graph(timestamp_limit=1376598564.33713)
         
-        g_median = create_graph(df=df, timestamp_limit=1358386882.63905)
-        nb_triangles_median = count_nb_triangle(g_median)
-        print("number triangles median: {}".format(nb_triangles_median))
+        # g_median = create_graph(df=df, timestamp_limit=1358386882.63905)
+        # nb_triangles_median = count_nb_triangle(g_median)
+        # print("number triangles median: {}".format(nb_triangles_median))
         
         # for i in range(3):
         #     print("=====================")
