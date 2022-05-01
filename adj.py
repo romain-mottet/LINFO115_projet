@@ -52,72 +52,70 @@ class Graph:
 
 """ Function which create a Graph object based on 'DATASET_FILE' csv file.
 """
-def create_graph(timestamp_limit=float('inf')):
+def create_graph(df, timestamp_limit=float('inf')):
     g = Graph()
-    with open(DATASET_FILE, 'r') as read_obj:
-        csv_dict_reader = DictReader(read_obj)
-        # Get number of vertices to create adjency matrix
-        df = pd.read_csv(DATASET_FILE)
-        source_column = df["Source"]
-        max_source_value = source_column.max()
-        target_column = df["Target"]
-        max_target_value = target_column.max()
-        max_vertices = max_source_value if max_source_value > max_target_value else max_target_value
-        max_vertices += 1
-        # Adjacency list for neighbour
-        adj = [[] for x in range(max_vertices)]
-        adj2 = [[] for x in range(max_vertices)]
-        # Adjacency edges list for neighbour (with weight and timestamp)
-        edges_adj = [[] for x in range(max_vertices)]
-        g.number_vertices = int(max_vertices)
-        print("number vertices :" + str(g.number_vertices))
-        
-        timestamp_list = []
 
-        # Get number of edges
-        rows = list(csv_dict_reader)
-        g.number_edges = len(rows)
-        #For each row, complete adacency lists of graph (adj[] and edges_adj[])
-        for row in rows:
-            s = int(row['Source'])
-            t = int(row['Target'])
-            if t not in adj2[s] :
-                adj2[s].append(t)
-            if s not in adj2[t] :
-                adj2[t].append(s)
-            ts = float(row['Timestamp'])
-            #Take only transactions for correct period
-            if ts < timestamp_limit:
-                adj[s].append(t)
-                adj[t].append(s)
-                timestamp_list.append(ts)
-                w = int(row['Weight'])
-                edge = Edge(t, w, ts)
-                edge_s = Edge(s, w, ts)
-                
-                """Take only last transaction between two nodes ("if you find multiple transactions between the same two nodes,
-                consider only the oldest one according to the timestamp")"""
-                temp = filter(lambda e: e.target != s and e.target != t, edges_adj[s])
-                edges_adj[s] = list(temp)
+    source_column = df["Source"]
+    max_source_value = source_column.max()
+    target_column = df["Target"]
+    max_target_value = target_column.max()
+    max_vertices = max_source_value if max_source_value > max_target_value else max_target_value
+    max_vertices += 1
+    # Adjacency list for neighbour
+    adj = [[] for x in range(max_vertices)]
+    adj2 = [[] for x in range(max_vertices)]
+    # Adjacency edges list for neighbour (with weight and timestamp)
+    edges_adj = [[] for x in range(max_vertices)]
+    g.number_vertices = int(max_vertices)
+    print("number vertices :" + str(g.number_vertices))
+    
+    timestamp_list = []
 
-                temp = filter(lambda e: e.target != s and e.target != t, edges_adj[t])
-                edges_adj[t] = list(temp)
+    # Get number of edges
+    rows = list(csv_dict_reader)
+    g.number_edges = len(rows)
+    #For each row, complete adacency lists of graph (adj[] and edges_adj[])
+    for row in rows:
+        s = int(row['Source'])
+        t = int(row['Target'])
+        if t not in adj2[s] :
+            adj2[s].append(t)
+        if s not in adj2[t] :
+            adj2[t].append(s)
+        ts = float(row['Timestamp'])
+        #Take only transactions for correct period
+        if ts < timestamp_limit:
+            adj[s].append(t)
+            adj[t].append(s)
+            timestamp_list.append(ts)
+            w = int(row['Weight'])
+            edge = Edge(t, w, ts)
+            edge_s = Edge(s, w, ts)
+            
+            """Take only last transaction between two nodes ("if you find multiple transactions between the same two nodes,
+            consider only the oldest one according to the timestamp")"""
+            temp = filter(lambda e: e.target != s and e.target != t, edges_adj[s])
+            edges_adj[s] = list(temp)
 
-                edges_adj[s].append(edge)
-                edges_adj[t].append(edge_s)
+            temp = filter(lambda e: e.target != s and e.target != t, edges_adj[t])
+            edges_adj[t] = list(temp)
 
-        #Compute median_timestamp
-        global median_timestamp
+            edges_adj[s].append(edge)
+            edges_adj[t].append(edge_s)
+
+    #Compute median_timestamp
+    global median_timestamp
+    if len(timestamp_list) != 0:
         median_timestamp = statistics.median(timestamp_list)
         quantiles_list = []
         quantiles_list.append(quantile(timestamp_list, .25))
         quantiles_list.append(quantile(timestamp_list, .5))
         quantiles_list.append(quantile(timestamp_list, .75))
         print("Quantiles : {}".format(quantiles_list))
-        
-        g.adj = adj
-        g.adj_one_link = adj2
-        g.edges_adj = edges_adj
+    
+    g.adj = adj
+    g.adj_one_link = adj2
+    g.edges_adj = edges_adj
     return g
 
 
@@ -232,32 +230,53 @@ def count_nb_triangle(g: Graph):
                     cpt+=1
     return cpt/6
 
+"""
+Input: Pandas dataframe as described above representing a graph
+Output: (number_of_different_components, number_of_bridges, number_of_local_bridges)
+"""
+def basic_properties(dataframe):
+    g = create_graph(dataframe)
+    cpt_components = count_number_components(g)
+    return (0,0,0) #replace with your own code
+
 
 if __name__ == '__main__':
     print("Dataset : '"+DATASET_FILE+"'")
     sys.setrecursionlimit(2000)
     #timestamp_limit=1358386882.63905
-    g = create_graph(timestamp_limit=1376598564.33713)
-    print("timestamp median : {}".format(median_timestamp))
-    # g.print_adj()
-    # g.print_edges_adj()
-    cpt_components = count_number_components(g)
-    print("number_components : "+str(cpt_components))
     
-    count_number_bridges(g)
-    print("number_bridges : "+str(cpt_bridge))
+    with open(DATASET_FILE, 'r') as read_obj:
+        csv_dict_reader = DictReader(read_obj)
+        # Get number of vertices to create adjency matrix
+        df = pd.read_csv(DATASET_FILE)
+        g = create_graph(df)
+        print("timestamp median : {}".format(median_timestamp))
+        # g.print_adj()
+        # g.print_edges_adj()
+        cpt_components = count_number_components(g)
+        print("number_components : "+str(cpt_components))
+        
+        cpt_bridge_var = count_number_bridges(g)
+        print("number_bridges : "+str(cpt_bridge_var))
 
-    number_lb = count_number_local_bridges(g)
-    print("Number of local bridges: {}".format(number_lb))
-    
-    t = count_nb_triangle(g)
-    print("number triangles : {}".format(t))
-    
-    # for i in range(3):
-    #     print("=====================")
-    #     print("adj : "+str(g.adj[i]))
-    #     print("edge_adj : "+str(g.edges_adj[i][1]))
-    
-    # cpt_local_bridge = count_number_local_bridges(g)
-    # print("local bridges : {}".format(cpt_local_bridge))
+        # number_lb = count_number_local_bridges(g)
+        # print("Number of local bridges: {}".format(number_lb))
+        
+        # nb_triangles = count_nb_triangle(g)
+        # print("number triangles : {}".format(nb_triangles))
+        
+        #timestamp_limit=1358386882.63905
+        # g = create_graph(timestamp_limit=1376598564.33713)
+        
+        g_median = create_graph(df=df, timestamp_limit=1358386882.63905)
+        nb_triangles_median = count_nb_triangle(g_median)
+        print("number triangles median: {}".format(nb_triangles_median))
+        
+        # for i in range(3):
+        #     print("=====================")
+        #     print("adj : "+str(g.adj[i]))
+        #     print("edge_adj : "+str(g.edges_adj[i][1]))
+        
+        # cpt_local_bridge = count_number_local_bridges(g)
+        # print("local bridges : {}".format(cpt_local_bridge))
 
