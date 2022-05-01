@@ -216,8 +216,8 @@ def count_number_local_bridges(g:Graph):
     cpt = 0
     for num_sommet in range(g.number_vertices):
         print ("------------------------------")
-        for num_link_sommet in range (len(g.adj[num_sommet])):
-            if is_common(g.adj[num_sommet], g.adj[g.adj[num_sommet][num_link_sommet]]):
+        for num_link_sommet in range (len(g.adj_one_link[num_sommet])):
+            if is_common(g.adj_one_link[num_sommet], g.adj_one_link[g.adj_one_link[num_sommet][num_link_sommet]]):
                     pass
             else :
                 cpt += 1
