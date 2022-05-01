@@ -207,21 +207,19 @@ def is_common (list1, list2):
 idée:
 in a graph is a local bridge if its endpoints A and B have no friends in common
 """
+
 def count_number_local_bridges(g:Graph):
     cpt = 0
-    print(g.adj)
     for num_sommet in range(g.number_vertices):
         print ("------------------------------")
         for num_link_sommet in range (len(g.adj[num_sommet])):
-            # print("Je suis dans le sommet {} et l'arrète index {} : ".format(num_sommet,num_link_sommet))
-            flag = True
-            if is_a_bridge(g, num_sommet, num_link_sommet):
-                pass
-            elif is_common(g.adj[num_sommet], g.adj [num_link_sommet]):
+            print("Je suis dans le sommet {} et l'arrète index {} : ".format(num_sommet,num_link_sommet))
+            if is_common(g.adj[num_sommet], g.adj[g.adj[num_sommet][num_link_sommet]]):
+                    print ("Sommet {} -> la liste {} = {} ".format(num_sommet, g.adj[num_sommet], g.adj[g.adj[num_sommet][num_link_sommet]]))
                     pass
             else :
                 cpt += 1
-    return cpt
+    return cpt/2
 
 
 def count_nb_triangle(g: Graph):
